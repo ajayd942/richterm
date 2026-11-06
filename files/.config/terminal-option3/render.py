@@ -13,6 +13,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.syntax import Syntax
 from log_stream import classify, stream
+from failure_views import draw_failure, failures
 
 
 def csv_rows(value, explicit):
@@ -36,12 +37,15 @@ def csv_rows(value, explicit):
 
 
 def render_diagnostic(console, value):
+    summaries = failures(value)
+    for failure in summaries:
+        draw_failure(console, failure)
     is_diff = (value.startswith("diff --git ") or
                re.search(r"(?m)^--- .+\n\+\+\+ .+\n@@ ", value))
     is_trace = (re.search(r"(?m)^Traceback \(most recent call last\):", value) or
                 re.search(r"(?m)^\s+at [\w.$/]+\([^\n()]+\)", value))
     is_log = re.search(r"(?m)^\[?\d{4}-\d\d-\d\d[T ][\d:.]+", value)
-    if not (is_diff or is_trace or is_log):
+    if not (summaries or is_diff or is_trace or is_log):
         return False
     text = Text(value)
     if is_diff:

@@ -53,6 +53,24 @@ This local health endpoint sends a single line of JSON. With just `curl -s`, Ric
 
 ![Docker stats for a demo gateway and cache, followed by Docker logs with a yellow cold-cache warning between two green INFO events.](docs/screenshots/docker-stats-logs.png)
 
+## Find a failing test
+
+Prefix a test command with `rtest`. A JUnit assertion shows the expected and actual values beside the source line. A Python traceback points to the failing function. The command keeps its original exit status. Use `rtest --full COMMAND` for the summary and complete output.
+
+![A real JUnit test expected three seats and got two at BookingServiceTest.java:7. A Python checkout run failed on a missing key at checkout.py:2.](docs/screenshots/test-failures.png)
+
+## Watch what changed
+
+Run `rwatch --key PARTITION ./group-status` to repeat a read-only report. Rows are matched by key, so sorting the output won't make every row light up. Here partition 2 caught up; the other partitions stayed quiet. Press **Ctrl-C** to stop.
+
+![A partition report comparing two samples. Only partition 2 changed, from lag 48 to 0 and from starting to ready.](docs/screenshots/watch-changes.png)
+
+## Understand an HTTP error
+
+`rhttp URL` makes one GET request. A **429** shows how long to wait when the server supplies `Retry-After`. A **500** puts the error message and request ID together so you can look up the matching log entry.
+
+![Two live GET responses. A 429 requests a 30-second wait, while a 500 reports a payment provider timeout. Both show elapsed time and request IDs.](docs/screenshots/http-failures.png)
+
 ## Find the line you need
 
 Run `csearch` and type a fragment you remember. Move through the matches to see each line in context. Press **Enter** to open the selected line in your editor.

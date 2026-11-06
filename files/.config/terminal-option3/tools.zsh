@@ -1,5 +1,8 @@
 # Option 3's interactive tools. Nothing here runs until a command is used.
 richterm() { "$HOME/.local/bin/richterm" "$@"; }
+rtest() { "$HOME/.config/terminal-option3/render-env/bin/python" "$HOME/.config/terminal-option3/inspect_cli.py" rtest "$@"; }
+rwatch() { "$HOME/.config/terminal-option3/render-env/bin/python" "$HOME/.config/terminal-option3/inspect_cli.py" rwatch "$@"; }
+rhttp() { "$HOME/.config/terminal-option3/render-env/bin/python" "$HOME/.config/terminal-option3/inspect_cli.py" rhttp "$@"; }
 if [[ -n ${RICHTERM_TOKEN:-} ]]; then
   typeset -g +x RICHTERM_TOKEN  # Keep the framing token local to this shell.
   autoload -Uz add-zsh-hook

@@ -67,6 +67,14 @@ customization as well, use `open -na Ghostty --args -e /bin/zsh -f`.
 
 ## Development
 
+### Inspect commands
+
+- `rtest [--full] COMMAND [ARGS...]` waits for a finite test run to finish, then summarizes recognized JUnit assertion failures and Python tracebacks. Successful or unrecognized results are printed in full. It also prints the original output if it exceeds the 1 MiB diagnostic scan window. Re-run with `--full` to see both views; Richterm doesn't keep a test transcript after the process exits. The PTY can also summarize a complete recognizable traceback during normal execution, subject to its grouping window.
+- `rwatch [--interval SECONDS] [--count N] [--key COLUMN ...] COMMAND [ARGS...]` runs a command repeatedly; **use a read-only report**. The default interval is two seconds after each completed sample. Use headed CSV, TSV, aligned tables or JSON arrays of objects. The first column identifies rows by default. Repeat `--key` when multiple columns identify a row. Changed cells show old → new; added and removed rows have + and − markers. A changed schema starts a new baseline. Each sample has a 30-second timeout and a 1 MiB display limit.
+- `rhttp URL` runs one HTTP(S) GET with curl, with a 30-second timeout, no retries and no redirect following. It displays status, duration, selected diagnostic headers and a body excerpt. HTTP 4xx/5xx returns status 22; transport errors retain curl's exit code. Use your regular curl command for authenticated requests or other methods.
+
+### Run the test suite
+
 The PTY relay, display detectors and shell integration live under
 `files/.config/terminal-option3/` (the existing config directory is retained
 for compatibility). The proxy preserves terminal controls and falls back to
