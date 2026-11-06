@@ -21,6 +21,20 @@ from pty_proxy import Screen, format_block
 
 
 class Rendering(unittest.TestCase):
+    def test_multiline_json_split_inside_key_crlf_and_utf8(self):
+        raw = '{\r\n  "café": [1, 2],\r\n  "ok": true\r\n}\r\n'.encode()
+        output = bytearray()
+        screen = Screen("test")
+        with patch("pty_proxy.write", side_effect=lambda fd, data: output.extend(data)), \
+             patch("pty_proxy.os.get_terminal_size", return_value=os.terminal_size((90, 30))):
+            screen.feed(b"\x1b]777;test;B\x07")
+            for byte in raw:
+                screen.feed(bytes([byte]))
+            screen.feed(b"\x1b]777;test;E\x07")
+        self.assertIn(b"\x1b[", output)
+        import json
+        self.assertEqual(json.loads(re.sub(rb"\x1b\[[0-9;]*m", b"", output)), json.loads(raw))
+
     def test_mixed_alignment_and_json(self):
         data = b"health status docs.count store.size\r\ngreen  open            0       498b\r\n"
         result = format_block(data, 80).decode()

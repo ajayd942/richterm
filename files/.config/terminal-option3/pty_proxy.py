@@ -35,12 +35,13 @@ def format_block(raw, width):
     try:
         text = raw.decode().replace("\r\n", "\n")
         lines = text.strip("\n").splitlines()
-        if not lines or len(lines) > 300:
+        looks_json = text.lstrip().startswith(("{", "["))
+        if not lines or (not looks_json and len(lines) > 300):
             return raw
         buf = io.StringIO()
         console = Console(file=buf, width=max(1, width), color_system="truecolor",
                           force_terminal=True, no_color=False, highlight=False, markup=False)
-        if text.lstrip().startswith(("{", "[")):
+        if looks_json:
             item = classify(raw) if len(lines) == 1 else None
             if isinstance(item, dict):
                 event = display(item)
@@ -76,6 +77,7 @@ class Screen:
         self.tail_deadline = 0
         self.active = False
         self.pending = bytearray()
+        self.json_document = False
         self.deadline = 0
         self.partial = False
         self.remote = False
@@ -84,6 +86,7 @@ class Screen:
         if self.pending:
             raw = bytes(self.pending)
             self.pending.clear()
+            self.json_document = False
             write(1, format_block(raw, os.get_terminal_size(1).columns))
 
     def body(self, data):
@@ -94,12 +97,37 @@ class Screen:
             return
         # An escape, standalone CR, or other cursor/control protocol switches
         # this command to transparent relay until the next shell command.
-        control = re.search(rb"[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]|\r(?!\n)", data)
+        candidate = self.json_document or (
+            not self.pending and not self.partial and data.lstrip(b" \t").startswith((b"{", b"["))
+        )
+        # An ONLCR-generated CRLF can itself straddle two PTY reads.
+        checked = data[:-1] if candidate and data.endswith(b"\r") else data
+        control = re.search(rb"[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]|\r(?!\n)", checked)
         if control:
             self.body(data[:control.start()])
             self.flush()
             self.active = False
             write(1, data[control.start():])
+            return
+        if candidate:
+            # PTY reads are arbitrary byte chunks, not JSON or line boundaries.
+            # Keep structured documents together, but release a complete log
+            # event immediately so idle streams never wait for a second event.
+            for part in data.splitlines(keepends=True):
+                if not self.active:
+                    write(1, part)
+                    continue
+                new_line = not self.pending
+                self.pending.extend(part)
+                self.json_document = True
+                if len(self.pending) >= 1024 * 1024:
+                    write(1, self.pending)
+                    self.pending.clear()
+                    self.json_document = False
+                    self.active = False
+                elif new_line and part.endswith(b"\n") and classify(part) is not None:
+                    self.flush()
+            self.deadline = time.monotonic() + 0.15
             return
         for line in data.splitlines(keepends=True):
             complete = line.endswith(b"\n")
