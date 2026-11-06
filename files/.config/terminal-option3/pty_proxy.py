@@ -202,6 +202,8 @@ def main():
         for sig in (signal.SIGHUP, signal.SIGTERM):
             signal.signal(sig, stop)
         tty.setraw(0, termios.TCSANOW)
+        os.set_blocking(master, False)
+        pending_input = b""
         resize()
         while True:
             deadlines = []
@@ -210,21 +212,39 @@ def main():
             if screen.tail:
                 deadlines.append(screen.tail_deadline)
             timeout = max(0, min(deadlines) - time.monotonic()) if deadlines else None
-            ready, _, _ = select.select([master, 0], [], [], timeout)
+            # Hold at most one paste chunk. When the child's input queue is
+            # full, keep draining its output so it can finish writing and read.
+            readers = [master] if pending_input else [master, 0]
+            writers = [master] if pending_input else []
+            ready, writable, _ = select.select(readers, writers, [], timeout)
             if master in ready:
                 try:
                     chunk = os.read(master, 65536)
+                except BlockingIOError:
+                    chunk = None
                 except OSError as exc:
                     if exc.errno != errno.EIO:
                         raise
                     break
-                if not chunk:
+                if chunk == b"":
                     break
-                if not screen.remote and os.tcgetpgrp(master) not in (child, 0) and not (
+                if chunk and not screen.remote and os.tcgetpgrp(master) not in (child, 0) and not (
                         termios.tcgetattr(master)[3] & termios.ICANON):
                     screen.flush()
                     screen.active = False
-                screen.feed(chunk)
+                if chunk:
+                    screen.feed(chunk)
+            if writable:
+                try:
+                    written = os.write(master, pending_input)
+                except BlockingIOError:
+                    pass  # Readiness can change before the write.
+                except OSError as exc:
+                    if exc.errno != errno.EIO:
+                        raise
+                    break
+                else:
+                    pending_input = pending_input[written:]
             if 0 in ready:
                 keys = os.read(0, 4096)
                 if not keys:
@@ -232,7 +252,7 @@ def main():
                 screen.flush()
                 if screen.active:
                     screen.active = False
-                write(master, keys)
+                pending_input = keys
             if screen.pending and time.monotonic() >= screen.deadline:
                 screen.flush()
             if screen.tail and time.monotonic() >= screen.tail_deadline:

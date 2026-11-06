@@ -66,6 +66,64 @@ class Rendering(unittest.TestCase):
 
 @unittest.skipUnless(sys.platform == "darwin", "the workstation target is macOS")
 class TerminalSession(unittest.TestCase):
+    def test_paste_while_child_fills_output_queue(self):
+        import hashlib
+        import shlex
+
+        paste = bytes(range(32, 128)) * 2048
+        burst = b"output-0123456789" * 16384
+        expected = b"DIGEST:" + hashlib.sha256(paste).hexdigest().encode()
+        with tempfile.TemporaryDirectory() as tmp:
+            helper = Path(tmp) / "producer.py"
+            helper.write_text(
+                "import hashlib, os, sys, time, tty\n"
+                "tty.setraw(0)\n"
+                "os.write(1, b'READY!')\n"
+                "time.sleep(0.3)\n"  # Let the paste fill the child's unread input queue.
+                "sys.stdout.buffer.write(b'output-0123456789' * 16384)\n"
+                "sys.stdout.buffer.flush()\n"
+                f"remaining = {len(paste)}\n"
+                "digest = hashlib.sha256()\n"
+                "while remaining:\n"
+                "    chunk = os.read(0, min(remaining, 4096))\n"
+                "    digest.update(chunk)\n"
+                "    remaining -= len(chunk)\n"
+                "os.write(1, b'DIGEST:' + digest.hexdigest().encode())\n"
+            )
+            (Path(tmp) / ".zshrc").write_text("exec " + shlex.join([sys.executable, str(helper)]) + "\n")
+            env = dict(os.environ, HOME=tmp, ZDOTDIR=tmp, TERM="xterm-256color")
+            env.pop("RICHTERM_ACTIVE", None)
+            master, slave = pty.openpty()
+            self.addCleanup(os.close, master)
+            self.addCleanup(os.close, slave)
+            os.set_blocking(master, False)
+            proc = subprocess.Popen([sys.executable, str(SOURCE / "pty_proxy.py")],
+                                    stdin=slave, stdout=slave, stderr=slave, env=env)
+            capture = bytearray()
+            sent = 0
+            ready = False
+            try:
+                deadline = time.monotonic() + 8
+                while time.monotonic() < deadline and not capture.endswith(expected):
+                    writers = [master] if ready and sent < len(paste) else []
+                    rd, wr, _ = select.select([master], writers, [], 0.05)
+                    if rd:
+                        capture.extend(os.read(master, 65536))
+                        ready = ready or b"READY!" in capture
+                    if wr:
+                        try:
+                            sent += os.write(master, paste[sent:sent+4096])
+                        except BlockingIOError:
+                            pass
+                self.assertEqual(sent, len(paste), "paste stalled while child was writing")
+                self.assertTrue(capture.endswith(b"READY!" + burst + expected),
+                                "output was lost, or pasted bytes changed")
+                self.assertEqual(proc.wait(timeout=5), 0)
+            finally:
+                if proc.poll() is None:
+                    proc.terminate()
+                    proc.wait(timeout=5)
+
     def test_resize_table_pipeline_and_exit(self):
         with tempfile.TemporaryDirectory() as tmp:
             home = Path(tmp)
