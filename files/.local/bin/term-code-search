@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Search the current directory with live ripgrep results and a bat preview."""
+
+import base64
+import json
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+
+
+def raw_field(field):
+    if "text" in field:
+        return field["text"].encode()
+    return base64.b64decode(field["bytes"])
+
+
+def display(data):
+    """Keep terminal controls and field separators out of result rows."""
+    value = data.decode("utf-8", errors="replace")
+    return "".join(
+        char if char.isprintable() else (" " if char.isspace() else "�")
+        for char in value
+    )
+
+
+def matches(query):
+    if not query:
+        return
+    args = ["rg", "--no-config", "--json", "--smart-case", "--fixed-strings",
+            "--hidden", "--glob", "!.git", "--", query, "."]
+    with subprocess.Popen(args, stdout=subprocess.PIPE) as search:
+        for record in search.stdout:
+            event = json.loads(record)
+            if event["type"] != "match":
+                continue
+            row = event["data"]
+            path = raw_field(row["path"])
+            token = base64.urlsafe_b64encode(path).decode()
+            line = row["line_number"]
+            content = raw_field(row["lines"]).rstrip(b"\r\n")
+            match = row["submatches"][0]
+            start, end = match["start"], match["end"]
+            before = display(content[max(0, start - 100):start])
+            hit = display(content[start:min(end, start + 240)])
+            after = display(content[end:end + 250])
+            label = display(path.removeprefix(b"./"))
+            print(f"{token}\t{line}\t\033[38;2;0;229;255m{label}\033[0m:"
+                  f"\033[38;2;255;85;255m{line}\033[0m  {before}"
+                  f"\033[1;38;2;57;255;136m{hit}\033[0m{after}", flush=True)
+        if search.wait() not in (0, 1):
+            raise SystemExit(search.returncode)
+
+
+def preview(token, line):
+    path = os.fsdecode(base64.urlsafe_b64decode(token))
+    height = max(8, int(os.environ.get("FZF_PREVIEW_LINES", 32)))
+    start = max(1, line - height // 3)
+    os.execvp("bat", ["bat", "--paging=never", "--color=always", "--wrap=never",
+                      "--style=numbers,changes", f"--highlight-line={line}",
+                      f"--line-range={start}:{line + height * 3}", "--", path])
+
+
+def pick(query):
+    helper = shlex.quote(os.path.abspath(__file__))
+    reload = f"{helper} --_matches {{q}}"
+    options = ["fzf", "--disabled", "--ansi", "--delimiter=\t", "--with-nth=3..",
+               "--layout=reverse", "--height=85%", "--border=rounded",
+               "--border-label= Code search ", "--prompt=Find › ", "--query", query,
+               "--header=Type text to search · Enter opens at line · Esc cancels",
+               "--preview", f"{helper} --_preview {{1}} {{2}}",
+               "--preview-window=right,55%,border-left,<100(down,50%,border-top)",
+               "--bind", f"start:reload({reload})",
+               "--bind", f"change:reload(sleep 0.10; exec {reload})"]
+    result = subprocess.run(options, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    if result.returncode in (1, 130):
+        return
+    result.check_returncode()
+    token, line, _ = result.stdout.split(b"\t", 2)
+    path = os.path.abspath(os.fsdecode(base64.urlsafe_b64decode(token)))
+    line = int(line)
+    if shutil.which("code"):
+        os.execvp("code", ["code", "--reuse-window", "--goto", f"{path}:{line}"])
+    editor = shutil.which("nvim") or "vim"
+    os.execvp(editor, [editor, f"+{line}", "--", path])
+
+
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    if args == ["--help"] or args == ["-h"]:
+        print("Usage: term-code-search [text]\n"
+              "Search this directory for literal text. Enter opens the selected line "
+              "in VS Code (or Vim). Press Esc to cancel.")
+    elif len(args) == 2 and args[0] == "--_matches":
+        matches(args[1])
+    elif len(args) == 3 and args[0] == "--_preview":
+        preview(args[1], int(args[2]))
+    else:
+        pick(" ".join(args))

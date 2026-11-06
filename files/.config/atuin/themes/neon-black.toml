@@ -1,0 +1,20 @@
+[theme]
+name = "neon-black"
+parent = "default"
+
+[colors]
+Base = "#eeeeee"
+Title = "#00e5ff"
+Important = "#39ff88"
+Guidance = "#00e5ff"
+Annotation = "#ff55ff"
+AlertInfo = "#00e5ff"
+AlertWarn = "#ffe600"
+AlertError = "#ff4d6a"
+Muted = "#8899aa"
+SyntaxCommand = "#39ff88"
+SyntaxFlag = "#66bbff"
+SyntaxString = "#ffe600"
+SyntaxVariable = "#ff55ff"
+SyntaxOperator = "#00e5ff"
+SyntaxComment = "#8899aa"

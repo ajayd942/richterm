@@ -1,0 +1,26 @@
+{
+  "document": {"block_prefix": "\n", "block_suffix": "\n", "color": "#EEEEEE", "margin": 1},
+  "heading": {"block_suffix": "\n", "color": "#00E5FF", "bold": true},
+  "h1": {"prefix": "▌ ", "color": "#00E5FF", "bold": true},
+  "h2": {"color": "#FF77E9", "bold": true},
+  "h3": {"color": "#90D5FF", "bold": true},
+  "block_quote": {"indent": 1, "indent_token": "│ ", "color": "#B7C7D6"},
+  "list": {"level_indent": 2},
+  "item": {"block_prefix": "• "},
+  "enumeration": {"block_prefix": ". "},
+  "task": {"ticked": "[✓] ", "unticked": "[ ] "},
+  "hr": {"format": "\n────────────\n", "color": "#537389"},
+  "emph": {"italic": true},
+  "strong": {"bold": true},
+  "strikethrough": {"crossed_out": true},
+  "link": {"color": "#66BBFF", "underline": true},
+  "link_text": {"color": "#00E5FF"},
+  "code": {"color": "#39FF88", "background_color": "#10211B", "prefix": " ", "suffix": " "},
+  "code_block": {"margin": 1, "chroma": {
+    "text": {"color": "#EEEEEE"}, "keyword": {"color": "#FF55FF"},
+    "keyword_type": {"color": "#00E5FF"}, "name_function": {"color": "#39FF88"},
+    "literal_string": {"color": "#FFE600"}, "literal_number": {"color": "#FF9933"},
+    "comment": {"color": "#99AABB", "italic": true}
+  }},
+  "table": {"center_separator": "┼", "column_separator": "│", "row_separator": "─"}
+}

@@ -1,0 +1,28 @@
+#:schema https://yazi-rs.github.io/schemas/theme.json
+
+[app]
+overall = { bg = "#000000" }
+
+[mgr]
+cwd = { fg = "#00e5ff", bold = true }
+border_style = { fg = "#365463" }
+find_keyword = { fg = "#39ff88", bold = true, underline = true }
+find_position = { fg = "#ff55ff" }
+syntect_theme = "__BAT_THEME_PATH__"
+
+[indicator]
+current = { fg = "#ffffff", bg = "#174657", bold = true }
+preview = { fg = "#00e5ff", underline = true }
+
+[mode]
+normal_main = { fg = "#000000", bg = "#00e5ff", bold = true }
+normal_alt = { fg = "#00e5ff", bg = "#11252c" }
+select_main = { fg = "#000000", bg = "#ff55ff", bold = true }
+select_alt = { fg = "#ff88ff", bg = "#2b142b" }
+
+[tabs]
+active = { fg = "#000000", bg = "#00e5ff", bold = true }
+inactive = { fg = "#66bbff", bg = "#11252c" }
+
+[status]
+progress_normal = { fg = "#39ff88", bg = "#000000" }

@@ -1,0 +1,16 @@
+# Local enhanced history. Account-based encrypted sync can be enabled later.
+auto_sync = false
+update_check = true
+search_mode = "fuzzy"
+filter_mode = "global"
+style = "compact"
+inline_height = 20
+show_preview = true
+enter_accept = false
+keymap_mode = "emacs"
+
+[theme]
+name = "neon-black"
+
+[ui]
+syntax_highlight = true

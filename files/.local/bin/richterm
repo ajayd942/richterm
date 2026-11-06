@@ -1,0 +1,20 @@
+#!/bin/sh
+if [ "$#" = 1 ] && [ "$1" = --plain ]; then
+  unset RICHTERM_TOKEN RICHTERM_ACTIVE
+  exec /bin/zsh -il
+fi
+if [ "$#" -ne 0 ]; then
+  printf '%s\n' 'Usage: richterm [--plain]    Start an interactive zsh with or without the PTY renderer.'
+  case "$1" in -h|--help) exit 0 ;; *) exit 2 ;; esac
+fi
+dir="$HOME/.config/terminal-option3"
+if [ ! -x "$dir/render-env/bin/python" ] || [ ! -r "$dir/pty_proxy.py" ]; then
+  printf '%s\n' 'Richterm runtime missing; opening zsh. Rerun install.sh to repair.' >&2
+  exec /bin/zsh -il
+fi
+# A GUI launch can have a smaller PATH than a login shell. The renderer
+# needs jq before the child zsh has loaded Homebrew.
+if ! command -v jq >/dev/null 2>&1; then
+  PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"; export PATH
+fi
+exec "$dir/render-env/bin/python" "$dir/pty_proxy.py" "$@"

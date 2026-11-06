@@ -1,0 +1,22 @@
+gui:
+  nerdFontsVersion: "3"
+  theme:
+    activeBorderColor: ["#00e5ff", bold]
+    inactiveBorderColor: ["#555566"]
+    searchingActiveBorderColor: ["#ff55ff", bold]
+    optionsTextColor: ["#66bbff"]
+    selectedLineBgColor: ["#102530"]
+    cherryPickedCommitFgColor: ["#39ff88"]
+    cherryPickedCommitBgColor: ["#102530"]
+    unstagedChangesColor: ["#ff4d6a"]
+    defaultFgColor: ["#eeeeee"]
+git:
+  diffRenderers:
+    - name: Neon diff
+      command: >-
+        delta --config="$HOME/.config/terminal-option3/diff.gitconfig"
+        {{if ge .width 125}}--side-by-side{{end}} --dark --paging=never
+        --width={{.width}} --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    - name: Word diff
+      type: rawGit
+      args: ["--color-words"]

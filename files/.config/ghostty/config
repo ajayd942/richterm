@@ -1,0 +1,63 @@
+# Readable, native-feeling macOS terminal defaults.
+shell-integration = zsh
+command = shell:if [ -x "$HOME/.local/bin/richterm" ]; then exec "$HOME/.local/bin/richterm"; else exec /bin/zsh -l; fi
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 20
+font-feature = calt
+font-feature = liga
+
+# Pure black with vivid ANSI colors, independent of macOS appearance.
+background = #000000
+foreground = #ffffff
+background-opacity = 1
+background-blur-radius = 0
+cursor-color = #00ffff
+cursor-text = #000000
+selection-background = #17435b
+selection-foreground = #ffffff
+# Distinguish the active scrollback search hit from other matches.
+search-foreground = #000000
+search-background = #ffe600
+search-selected-foreground = #000000
+search-selected-background = #00e5ff
+bold-color = bright
+palette = 0=#000000
+palette = 1=#ff4d6a
+palette = 2=#39ff88
+palette = 3=#ffe600
+palette = 4=#3399ff
+palette = 5=#ff55ff
+palette = 6=#00e5ff
+palette = 7=#eeeeee
+palette = 8=#999999
+palette = 9=#ff6680
+palette = 10=#66ff99
+palette = 11=#ffff66
+palette = 12=#66bbff
+palette = 13=#ff88ff
+palette = 14=#66ffff
+palette = 15=#ffffff
+cursor-style = bar
+cursor-style-blink = true
+
+window-padding-x = 12
+window-padding-y = 10
+window-padding-balance = true
+split-divider-color = #245269
+unfocused-split-opacity = 0.90
+mouse-hide-while-typing = true
+window-save-state = always
+macos-titlebar-style = tabs
+macos-option-as-alt = true
+
+# Unlimited output history for each open terminal surface.
+scrollback-limit-bytes = unlimited
+scrollback-limit-lines = unlimited
+scrollback-compression = true
+copy-on-select = clipboard
+confirm-close-surface = false
+
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+keybind = cmd+shift+enter=toggle_split_zoom

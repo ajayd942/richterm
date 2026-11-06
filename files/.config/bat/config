@@ -1,0 +1,10 @@
+--theme="Neon Black"
+--style="numbers,changes,header,grid"
+--italic-text=always
+--paging=auto
+--map-syntax="LICENSE*:Project Documentation"
+--map-syntax="LICENCE*:Project Documentation"
+--map-syntax="NOTICE*:Project Documentation"
+--map-syntax="COPYING*:Project Documentation"
+--map-syntax="AUTHORS:Project Documentation"
+--map-syntax="*.txt:Project Documentation"

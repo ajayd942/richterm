@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>name</key><string>Neon Black</string>
+<key>settings</key><array>
+<dict><key>settings</key><dict>
+<key>background</key><string>#000000</string>
+<key>foreground</key><string>#f5f5f5</string>
+<key>caret</key><string>#00e5ff</string>
+<key>selection</key><string>#153344</string>
+<key>lineHighlight</key><string>#12313a</string>
+<key>gutter</key><string>#000000</string>
+<key>gutterForeground</key><string>#8899aa</string>
+</dict></dict>
+<dict><key>scope</key><string>comment, punctuation.definition.comment</string><key>settings</key><dict><key>foreground</key><string>#8899aa</string><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>keyword, storage.type, storage.modifier</string><key>settings</key><dict><key>foreground</key><string>#ff55ff</string></dict></dict>
+<dict><key>scope</key><string>string</string><key>settings</key><dict><key>foreground</key><string>#ffe600</string></dict></dict>
+<dict><key>scope</key><string>constant.numeric, constant.language, constant.character</string><key>settings</key><dict><key>foreground</key><string>#ff9933</string></dict></dict>
+<dict><key>scope</key><string>entity.name.function, support.function</string><key>settings</key><dict><key>foreground</key><string>#39ff88</string></dict></dict>
+<dict><key>scope</key><string>entity.name.type, entity.name.class, support.type, support.class</string><key>settings</key><dict><key>foreground</key><string>#00e5ff</string></dict></dict>
+<dict><key>scope</key><string>variable.parameter</string><key>settings</key><dict><key>foreground</key><string>#66bbff</string><key>fontStyle</key><string>italic</string></dict></dict>
+<dict><key>scope</key><string>entity.name.tag, markup.deleted</string><key>settings</key><dict><key>foreground</key><string>#ff4d6a</string></dict></dict>
+<dict><key>scope</key><string>entity.other.attribute-name, markup.inserted</string><key>settings</key><dict><key>foreground</key><string>#39ff88</string></dict></dict>
+<dict><key>scope</key><string>markup.heading</string><key>settings</key><dict><key>foreground</key><string>#00e5ff</string><key>fontStyle</key><string>bold</string></dict></dict>
+</array></dict></plist>

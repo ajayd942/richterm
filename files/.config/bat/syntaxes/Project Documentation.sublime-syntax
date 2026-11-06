@@ -1,0 +1,18 @@
+%YAML 1.2
+---
+name: Project Documentation
+scope: text.project-documentation
+contexts:
+  main:
+    - match: '^\s*(?:#{1,6}\s+.+|[A-Z][A-Z ,/&-]{7,}|[0-9]+\.\s+[^.]{2,65}\.?|Apache (?:Kafka|License))\s*$'
+      scope: markup.heading
+    - match: '(?i)\bcopyright\b(?:\s+\([cC]\))?(?:\s+[0-9]{4}(?:-[0-9]{4})?)?'
+      scope: keyword.other
+    - match: 'https?://[^\s<>")]+'
+      scope: support.function
+    - match: '^\s*(?://\s*)?[-=]{4,}\s*$'
+      scope: comment.line
+    - match: '^\s*"[^"\n]+"(?=\s+shall mean)'
+      scope: string.quoted.double
+    - match: '\b(?:[0-9]{4}|[0-9]+\.[0-9]+)\b'
+      scope: constant.numeric
