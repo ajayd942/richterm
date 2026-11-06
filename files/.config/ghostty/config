@@ -1,6 +1,6 @@
 # Readable, native-feeling macOS terminal defaults.
 shell-integration = zsh
-command = shell:if [ -x "$HOME/.local/bin/richterm" ]; then exec "$HOME/.local/bin/richterm"; else exec /bin/zsh -l; fi
+command = shell:/bin/sh -c 'if [ -x "$HOME/.local/bin/richterm" ]; then exec "$HOME/.local/bin/richterm"; else exec /bin/zsh -l; fi'
 font-family = JetBrainsMono Nerd Font Mono
 font-size = 20
 font-feature = calt
