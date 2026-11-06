@@ -52,7 +52,7 @@ This local health endpoint sends a single line of JSON. With just `curl -s`, Ric
 Use `rhttp --explore URL` to fetch once and browse, or pipe your existing request into `jview`:
 
 ```sh
-curl -sS https://api.github.com/repos/ajayd942/richterm/releases | jview
+curl -sS https://api.github.com/repos/ajayd942/richterm/contents | jview
 # Or open a saved response:
 jview response.json
 ```
