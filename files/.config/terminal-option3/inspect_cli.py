@@ -19,6 +19,7 @@ from rich.text import Text
 
 from failure_views import draw_failure, failures
 from render import table_rows
+from json_view import LIMIT as JSON_LIMIT, explore
 
 LIMIT = 1024 * 1024
 
@@ -60,7 +61,8 @@ def http_view(args, console):
         raise ValueError("Provide an http:// or https:// URL.")
     with tempfile.TemporaryDirectory() as tmp:
         headers, body = Path(tmp)/"headers", Path(tmp)/"body"
-        result = subprocess.run(["curl", "--disable", "--silent", "--show-error", "--globoff",
+        cap = ["--max-filesize", str(JSON_LIMIT)] if args.explore else []
+        result = subprocess.run(["curl", "--disable", "--silent", "--show-error", "--globoff", *cap,
                                  "--max-time", "30", "--proto", "=http,https", "--dump-header", str(headers),
                                  "--output", str(body), "--write-out", "%{response_code} %{time_total}",
                                  "--", args.url], stdout=subprocess.PIPE, text=True)
@@ -72,6 +74,16 @@ def http_view(args, console):
         status, *fields = response.splitlines()
         metadata = {k.lower():v.strip() for field in fields for k, _, v in [field.partition(":")]}
         color = "#ffe600" if code == "429" else "#ff5577" if int(code) >= 400 else "#39ff88"
+        if args.explore:
+            info = [status, f"{float(seconds)*1000:.1f} ms"]
+            if "x-request-id" in metadata:
+                info.append("request " + metadata["x-request-id"])
+            if "retry-after" in metadata:
+                info.append("retry-after " + metadata["retry-after"])
+            with body.open("rb") as file:
+                document = file.read(JSON_LIMIT + 1)
+            explore(document, "  ·  ".join(info), failed=int(code) >= 400)
+            return 22 if int(code) >= 400 else 0
         summary = Text(text_value(status), style=f"bold {color}")
         summary.append(f"    {float(seconds)*1000:.1f} ms\n", style="#99aabb")
         for header, label in [("retry-after", "Retry after"), ("x-request-id", "Request ID"),
@@ -191,15 +203,28 @@ def main():
     test.add_argument("--full", action="store_true")
     test.add_argument("command", nargs=argparse.REMAINDER)
     http = subs.add_parser("rhttp", help="Inspect one HTTP GET response")
+    http.add_argument("--explore", action="store_true", help="Browse the JSON response interactively")
     http.add_argument("url")
     watch = subs.add_parser("rwatch", help="Repeat a read-only report and compare keyed rows")
     watch.add_argument("--interval", type=float, default=2)
     watch.add_argument("--key", action="append", default=[])
     watch.add_argument("--count", type=int)
     watch.add_argument("command", nargs=argparse.REMAINDER)
+    view = subs.add_parser("jview", help="Explore one JSON document from stdin or a file")
+    view.add_argument("file", nargs="?")
     args = parser.parse_args()
     console = Console(markup=False, highlight=False)
     try:
+        if args.view == "jview":
+            if args.file:
+                with open(args.file, "rb") as f:
+                    raw = f.read(JSON_LIMIT + 1)
+            elif not sys.stdin.isatty():
+                raw = sys.stdin.buffer.read(JSON_LIMIT + 1)
+            else:
+                raise ValueError("Pipe JSON into jview, or provide a JSON file.")
+            explore(raw)
+            return 0
         return {"rtest":test_view, "rwatch":watch_view, "rhttp":http_view}[args.view](args, console)
     except KeyboardInterrupt:
         return 130

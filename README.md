@@ -47,6 +47,33 @@ This local health endpoint sends a single line of JSON. With just `curl -s`, Ric
 
 ![A live curl request returns a formatted health response showing the gateway version, database and cache checks, and latency.](docs/screenshots/curl-json.png)
 
+### Explore a larger JSON response
+
+Use `rhttp --explore URL` to fetch once and browse, or pipe your existing request into `jview`:
+
+```sh
+curl -sS https://api.github.com/repos/ajayd942/richterm/releases | jview
+# Or open a saved response:
+jview response.json
+```
+
+Arrays of records open side by side. In this booking list, one customer has an explicit `null` note and another record omits the field. **Enter** opens the selected row as a tree. Press **/** to find a key or value, **p** to copy its jq path, **y** to copy its value, or **q** to quit.
+
+![The JSON table compares five bookings and shows the difference between null and a missing note.](docs/screenshots/json-table.png)
+
+<details>
+<summary>See nested fields and validation errors</summary>
+
+Use **1** for the tree, **2** for a record table, and **3** for the original JSON text. Expand an object to read its fields.
+
+![A booking tree with its customer and items collapsed, alongside visible status, total, currency, and note fields.](docs/screenshots/json-tree.png)
+
+A failed HTTP response with recognized error details opens in **4**, the errors view. Select a reason and press **Enter** to inspect its source.
+
+![A live 422 response pairs items[2].quantity and payment.currency with their validation messages and shows the request ID.](docs/screenshots/json-errors.png)
+
+</details>
+
 ## Check your containers
 
 `docker stats --no-stream` puts CPU and memory side by side for two running services. `docker logs` brings the message and its severity forward. Add `-f` to watch new entries as they arrive.

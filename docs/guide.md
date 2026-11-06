@@ -69,6 +69,18 @@ customization as well, use `open -na Ghostty --args -e /bin/zsh -f`.
 
 ### Inspect commands
 
+`rhttp --explore URL` fetches one JSON response and keeps its status, timing and diagnostic headers visible. Use `curl … | jview` for requests with your own authentication, method or body, or `jview FILE` for a saved response. The explorer reads one UTF-8 JSON document and takes keyboard input from the terminal. Limits are 8 MiB, 100,000 nodes and 128 nesting levels. Duplicate keys are rejected to avoid silently losing a value. NDJSON streams belong in the log viewer.
+
+| In the JSON explorer | Action |
+|---|---|
+| **1 / 2 / 3 / 4** | Tree, table, original response text, or recognized errors. Tables require an array of objects. Select a nested array in the tree before pressing **2** to inspect it. |
+| **↑ / ↓**, **Page Up / Down** | Move between fields, records or source lines. |
+| **← / →** | Collapse or expand in the tree, select a column in a table, or scroll horizontally in raw view. |
+| **Enter** | Toggle a tree node, inspect a table row or open the source of an error. |
+| **/**, **n / N** | Search keys and scalar values case-insensitively. Jump to the next or previous match with its parents expanded. |
+| **y / p** | Copy a value or its jq path to the Mac clipboard. In raw view **y** copies the entire original document. |
+| **q** | Exit. After an HTTP 4xx/5xx, `rhttp --explore` returns status 22. |
+
 - `rtest [--full] COMMAND [ARGS...]` waits for a finite test run to finish, then summarizes recognized JUnit assertion failures and Python tracebacks. Successful or unrecognized results are printed in full. It also prints the original output if it exceeds the 1 MiB diagnostic scan window. Re-run with `--full` to see both views; Richterm doesn't keep a test transcript after the process exits. The PTY can also summarize a complete recognizable traceback during normal execution, subject to its grouping window.
 - `rwatch [--interval SECONDS] [--count N] [--key COLUMN ...] COMMAND [ARGS...]` runs a command repeatedly; **use a read-only report**. The default interval is two seconds after each completed sample. Use headed CSV, TSV, aligned tables or JSON arrays of objects. The first column identifies rows by default. Repeat `--key` when multiple columns identify a row. Changed cells show old → new; added and removed rows have + and − markers. A changed schema starts a new baseline. Each sample has a 30-second timeout and a 1 MiB display limit.
 - `rhttp URL` runs one HTTP(S) GET with curl, with a 30-second timeout, no retries and no redirect following. It displays status, duration, selected diagnostic headers and a body excerpt. HTTP 4xx/5xx returns status 22; transport errors retain curl's exit code. Use your regular curl command for authenticated requests or other methods.
