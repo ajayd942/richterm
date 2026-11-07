@@ -63,6 +63,47 @@ def render_diagnostic(console, value):
     return True
 
 
+def postgres_tables(console, value):
+    """Render complete psql aligned tables, leaving surrounding messages intact."""
+    lines = value.splitlines(keepends=True)
+    blocks = []
+    for i in range(1, len(lines)-1):
+        separator = lines[i].strip("\r\n")
+        if not re.fullmatch(r"-+(?:\+-+)+", separator):
+            continue
+        borders = [-1] + [m.start() for m in re.finditer(r"\+", separator)] + [len(separator)]
+        rows = []
+        end = i + 1
+        valid = True
+        for number in [i-1, *range(i+1, len(lines))]:
+            line = lines[number].rstrip("\r\n")
+            footer = re.fullmatch(r"\((\d+) rows?\)", line)
+            if footer:
+                end = number
+                valid = int(footer[1]) == len(rows)-1
+                break
+            if any(pos >= len(line) or line[pos] != "|" for pos in borders[1:-1]):
+                valid = False
+                break
+            rows.append([line[a+1:b].strip() for a,b in zip(borders,borders[1:])])
+        else:
+            valid = False
+        if valid and rows:
+            blocks.append((i-1,end,rows))
+    if not blocks:
+        return False
+    cursor = 0
+    for start,end,rows in blocks:
+        if start < cursor:
+            continue
+        console.print(Text("".join(lines[cursor:start])), end="", soft_wrap=True)
+        print_table(console,rows)
+        console.print(Text(lines[end].rstrip("\r\n"),style="#99aabb"))
+        cursor = end+1
+    console.print(Text("".join(lines[cursor:])),end="",soft_wrap=True)
+    return True
+
+
 def table_rows(lines):
     if not lines:
         return None
@@ -114,6 +155,8 @@ def render():
         sys.stdout.buffer.write(raw)
         return
     console = Console(highlight=False, markup=False)
+    if postgres_tables(console, value):
+        return
     is_help = re.search(r"(?im)^usage:\s+", value[:1200])
     if sys.argv[1] == "help" or (sys.argv[1] == "auto" and is_help):
         text = Text(value)

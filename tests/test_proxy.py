@@ -21,6 +21,15 @@ from pty_proxy import Screen, format_block
 
 
 class Rendering(unittest.TestCase):
+    def test_postgres_table_with_messages_and_pipe_in_value(self):
+        raw = (b"CREATE TABLE\r\nINSERT 0 1\r\n"
+               b" id | name  \r\n----+-------\r\n  1 | a | b \r\n(1 row)\r\n\r\n")
+        output = format_block(raw, 80).decode()
+        for part in ("CREATE TABLE", "INSERT 0 1", "╭", "a | b", "(1 row)"):
+            self.assertIn(part, output)
+        incomplete = raw.replace(b"(1 row)", b"(2 rows)")
+        self.assertEqual(format_block(incomplete,80), incomplete)
+
     def test_multiline_json_split_inside_key_crlf_and_utf8(self):
         raw = '{\r\n  "café": [1, 2],\r\n  "ok": true\r\n}\r\n'.encode()
         output = bytearray()

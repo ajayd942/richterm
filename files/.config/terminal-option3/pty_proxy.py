@@ -17,7 +17,7 @@ import tty
 try:
     from rich.console import Console
     from log_stream import classify, display
-    from render import csv_rows, print_table, render_diagnostic, table_rows
+    from render import csv_rows, print_table, render_diagnostic, table_rows, postgres_tables
 except ImportError:
     if __name__ != "__main__":
         raise
@@ -54,7 +54,7 @@ def format_block(raw, width):
                 parsed = subprocess.run(["jq", "-C", "--indent", "2", "."], input=raw,
                                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=2)
                 return parsed.stdout.replace(b"\n", b"\r\n") if parsed.returncode == 0 else raw
-        elif not render_diagnostic(console, text):
+        elif not postgres_tables(console, text) and not render_diagnostic(console, text):
             pairs = [re.fullmatch(r"([\w][\w .()-]{0,40}):[ \t]+(.+)", line) for line in lines]
             if len(lines) >= 2 and all(pairs):
                 rows = [["Field", "Value"], *(p.groups() for p in pairs)]
